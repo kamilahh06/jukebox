@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SerpAPI Music Context - Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #0a0612 0%, #140c1e 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.2rem;
+    }
+
+    .search-box {
+      background: linear-gradient(145deg, rgba(25, 18, 40, 0.6), rgba(15, 10, 30, 0.8));
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 60px rgba(139, 92, 246, 0.15);
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(10, 8, 20, 0.6);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 1rem;
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(100, 70, 180, 0.6));
+      border: 1px solid rgba(185, 128, 255, 0.3);
+      border-radius: 0.75rem;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.02);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .examples {
+      margin-top: 1rem;
+    }
+
+    .examples p {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 0.5rem;
+    }
+
+    .example-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .example-btn {
+      width: auto;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: rgba(185, 128, 255, 0.9);
+    }
+
+    .results {
+      background: linear-gradient(145deg, rgba(15, 10, 30, 0.8), rgba(8, 5, 18, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1rem;
+      padding: 2rem;
+      min-height: 200px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(139, 92, 246, 0.3);
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .ai-overview {
+      background: linear-gradient(145deg, rgba(139, 92, 246, 0.08), rgba(100, 70, 180, 0.05));
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .ai-overview h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .result-item {
+      background: linear-gradient(145deg, rgba(20, 15, 35, 0.4), rgba(10, 8, 20, 0.6));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      transition: transform 0.2s;
+    }
+
+    .result-item:hover {
+      transform: scale(1.01);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .result-item a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .result-item h4 {
+      margin-bottom: 0.5rem;
+      color: #e9d5ff;
+    }
+
+    .result-item p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .api-note {
+      background: rgba(234, 179, 8, 0.1);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      color: #fde047;
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .api-note h3 {
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .api-note code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: monospace;
+    }
+
+    @media (max-width: 768px) {
+      .input-group {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎵 SerpAPI Music Context</h1>
+      <p>AI-powered music intelligence with Google Search, Videos & News</p>
+    </div>
+
+    <div class="api-note">
+      <h3>⚠️ Setup Required</h3>
+      <p>This demo requires a backend API endpoint. To use SerpAPI integration:</p>
+      <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+        <li>Set up the API route at <code>/api/context/enhanced</code></li>
+        <li>Add your <code>SERP_API_KEY</code> environment variable</li>
+        <li>Copy the files from <code>/mnt/user-data/outputs/</code> to your Next.js project</li>
+      </ol>
+      <p style="margin-top: 0.75rem;">For now, this shows the UI structure. Full functionality requires the backend integration.</p>
+    </div>
+
+    <div class="search-box">
+      <div class="input-group">
+        <div>
+          <label for="track">Track Title</label>
+          <input type="text" id="track" placeholder="Enter track title" value="Bohemian Rhapsody">
+        </div>
+        <div>
+          <label for="artist">Artist Name</label>
+          <input type="text" id="artist" placeholder="Enter artist name" value="Queen">
+        </div>
+      </div>
+      
+      <button onclick="searchTrack()" id="searchBtn">🔍 Search with SerpAPI</button>
+
+      <div class="examples">
+        <p>Quick examples:</p>
+        <div class="example-buttons">
+          <button class="example-btn" onclick="setExample('Stairway to Heaven', 'Led Zeppelin')">Stairway to Heaven</button>
+          <button class="example-btn" onclick="setExample('Smells Like Teen Spirit', 'Nirvana')">Smells Like Teen Spirit</button>
+          <button class="example-btn" onclick="setExample('Billie Jean', 'Michael Jackson')">Billie Jean</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="results">
+      <div style="text-align: center; padding: 3rem; color: rgba(255, 255, 255, 0.4);">
+        <p>Enter a track and artist above, then click Search to see SerpAPI-powered context</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setExample(track, artist) {
+      document.getElementById('track').value = track;
+      document.getElementById('artist').value = artist;
+    }
+
+    async function searchTrack() {
+      const track = document.getElementById('track').value.trim();
+      const artist = document.getElementById('artist').value.trim();
+      const resultsDiv = document.getElementById('results');
+      const searchBtn = document.getElementById('searchBtn');
+
+      if (!track || !artist) {
+        alert('Please enter both track title and artist name');
+        return;
+      }
+
+      searchBtn.disabled = true;
+      resultsDiv.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Searching the web for context, videos, and news...</p>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`/api/context/enhanced?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`);
+        
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        displayResults(data);
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="error">
+            <h3>❌ Error Loading Context</h3>
+            <p>${error.message}</p>
+            <p style="margin-top: 0.5rem;">Make sure you've set up the API endpoint and SERP_API_KEY environment variable.</p>
+            <p style="margin-top: 0.5rem;">Check the console for more details.</p>
+          </div>
+          <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.05); border-radius: 0.75rem;">
+            <h4 style="margin-bottom: 1rem;">Demo UI Preview</h4>
+            <p style="color: rgba(255, 255, 255, 0.6); line-height: 1.6;">
+              This demo shows what the SerpAPI integration UI will look like. Once you integrate the backend files, 
+              you'll see real AI-powered context, videos, news, and curated articles here.
+            </p>
+          </div>
+        `;
+        console.error('SerpAPI Error:', error);
+      } finally {
+        searchBtn.disabled = false;
+      }
+    }
+
+    function displayResults(data) {
+      const resultsDiv = document.getElementById('results');
+      let html = '';
+
+      // AI Overview
+      if (data.aiOverview) {
+        html += `
+          <div class="ai-overview">
+            <h3>✨ AI Overview</h3>
+            <p style="line-height: 1.7; color: rgba(255, 255, 255, 0.85);">${data.aiOverview.text}</p>
+          </div>
+        `;
+      }
+
+      // Videos
+      if (data.videos && data.videos.length > 0) {
+        html += `
+          <div class="section">
+            <h3>🎬 Videos & Performances</h3>
+            ${data.videos.slice(0, 4).map(video => `
+              <div class="result-item">
+                <a href="${video.link}" target="_blank">
+                  <h4>${video.title}</h4>
+                  <p>${video.channel} ${video.duration ? '· ' + video.duration : ''}</p>
+                </a>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // News
+      if (data.news && data.news.length > 0) {
+        html += `
+          <div class="section">
+            <h3>📰 Latest News</h3>
+            ${data.news.map(news => `
+              <div class="result-item">
+                <a href="${news.link}" target="_blank">
+                  <h4>${news.title}</h4>
+                  <p>${news.snippet}</p>
+                  <p style="font-size: 0.8rem; margin-top: 0.5rem;">${news.source} · ${news.date}</p>
+                </a>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // Organic Results
+      if (data.organicResults && data.organicResults.length > 0) {
+        html += `
+          <div class="section">
+            <h3>🔗 In-Depth Articles</h3>
+            ${data.organicResults.slice(0, 6).map(result => `
+              <div class="result-item">
+                <a href="${result.link}" target="_blank">
+                  <h4>${result.title}</h4>
+                  <p>${result.snippet}</p>
+                  ${result.source ? `<p style="font-size: 0.8rem; margin-top: 0.5rem;">${result.source}</p>` : ''}
+                </a>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      if (!html) {
+        html = '<p style="text-align: center; color: rgba(255, 255, 255, 0.5);">No results found</p>';
+      }
+
+      resultsDiv.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
