@@ -7,6 +7,8 @@ import { TopMenu } from "@/components/home/TopMenu";
 import { NowPlayingWidget } from "@/components/home/NowPlayingWidget";
 import { BrowseTracksCarousel } from "@/components/home/BrowseTracksCarousel";
 import { CdCaseCarousel } from "@/components/home/CdCaseCarousel";
+import { TopReviewsSection } from "@/components/home/TopReviewsSection";
+import type { TopReview } from "@/components/home/TopReviewsSection";
 import { ArrowRight, Disc3, MessageSquare, Layers, Users, Headphones, PenLine, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -94,6 +96,7 @@ export default async function HomePage(props: {
   let total = 0;
   let forYouTracks: TrackRow[] = [];
   let userGenrePrefs: string[] = [];
+  let topReviews: TopReview[] = [];
 
   try {
     const supabase = await createClient();
@@ -109,6 +112,57 @@ export default async function HomePage(props: {
     playlists = playRes.data ?? [];
     browseTracks = (browseRes.data ?? []) as TrackRow[];
     total = browseRes.count ?? 0;
+
+    // Fetch top reviews by upvote count
+    try {
+      const { data: recentReviews } = await supabase
+        .from("reviews")
+        .select("id, body, created_at, user_id, track_id, profiles(username, display_name), tracks(id, title, artist, cover_url)")
+        .not("body", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(40);
+
+      if (recentReviews && recentReviews.length > 0) {
+        const reviewIds = recentReviews.map((r: { id: string }) => r.id);
+        const { data: reactions } = await supabase
+          .from("reactions")
+          .select("target_id")
+          .eq("target_type", "review")
+          .in("target_id", reviewIds)
+          .eq("emoji", "👍");
+
+        const upvoteCounts: Record<string, number> = {};
+        for (const row of reactions ?? []) {
+          const tid = row.target_id as string;
+          upvoteCounts[tid] = (upvoteCounts[tid] ?? 0) + 1;
+        }
+
+        topReviews = (recentReviews as unknown[])
+          .map((r) => {
+            const row = r as {
+              id: string;
+              body: string;
+              created_at: string;
+              tracks: { id: string; title: string; artist: string; cover_url?: string | null } | null;
+              profiles: { username?: string | null; display_name?: string | null } | null;
+            };
+            if (!row.tracks) return null;
+            return {
+              id: row.id,
+              body: row.body,
+              created_at: row.created_at,
+              upvotes: upvoteCounts[row.id] ?? 0,
+              track: row.tracks,
+              author: row.profiles ?? {},
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => (b!.upvotes - a!.upvotes) || (new Date(b!.created_at).getTime() - new Date(a!.created_at).getTime()))
+          .slice(0, 6) as TopReview[];
+      }
+    } catch {
+      // Top reviews section is optional
+    }
 
     // Personalized "For You" section — isolated so failures don't affect track display
     try {
@@ -446,9 +500,17 @@ export default async function HomePage(props: {
         </div>
       </section> */}
 
-      {/* Groove divider */}
-      <div className="groove-line mb-12" />
-
+      {/* ---- Top Reviews ---- */}
+      {topReviews.length > 0 && (
+        <section className="pb-12">
+          <SectionHeader
+            label="COMMUNITY"
+            title="Most Loved Reviews"
+            subtitle="The reviews your community rated highest"
+          />
+          <TopReviewsSection reviews={topReviews} />
+        </section>
+      )}
 
       {/* Groove divider */}
       <div className="groove-line mb-12" />

@@ -148,27 +148,6 @@ export default function SearchPage() {
           )}
         </div>
 
-        {/* Genre pills */}
-        {availableGenres.length > 0 && (
-          <div>
-            <p className="text-[10px] text-muted-foreground tracking-widest mb-2">GENRE</p>
-            <div className="flex flex-wrap gap-2">
-              {availableGenres.map((genre) => (
-                <button
-                  key={genre}
-                  onClick={() => setActiveGenre(activeGenre === genre ? null : genre)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide transition-all duration-200 border ${
-                    activeGenre === genre
-                      ? "holo-gradient text-background border-transparent neon-glow-cyan"
-                      : "glass border-border/30 text-muted-foreground hover:text-foreground hover:border-primary/30"
-                  }`}
-                >
-                  {genre}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="flex flex-wrap gap-6">
           {/* Min rating */}
