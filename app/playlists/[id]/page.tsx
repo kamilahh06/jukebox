@@ -117,6 +117,11 @@ export default async function PlaylistDetailPage({
                     {item.tracks.artist}
                     {item.tracks.album && ` \u00B7 ${item.tracks.album}`}
                   </p>
+                  {item.note && (
+                    <p className="text-xs text-primary/70 mt-1 italic truncate">
+                      "{item.note}"
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Star className="h-3 w-3 text-primary fill-primary" />

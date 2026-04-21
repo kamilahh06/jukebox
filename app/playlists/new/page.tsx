@@ -102,10 +102,25 @@ export default function NewPlaylistPage() {
             playlist_id: playlist.id,
             track_id: item.track.id,
             position: i,
+            note: item.note.trim() || null,
           }))
         );
       if (itemsError) {
-        toast.error("Playlist created but failed to add some tracks");
+        // note column may not exist yet — retry without it
+        const { error: retryError } = await supabase
+          .from("playlist_items")
+          .insert(
+            items.map((item, i) => ({
+              playlist_id: playlist.id,
+              track_id: item.track.id,
+              position: i,
+            }))
+          );
+        if (retryError) {
+          toast.error("Playlist created but failed to add tracks");
+          setSubmitting(false);
+          return;
+        }
       }
     }
 
